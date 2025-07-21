@@ -1,4 +1,0 @@
-id,name,email,password,type,extra
-9a787ce9-97b3-44f0-a38c-efbb6a910807,admin,lib@library.com,admin123,lib,LIB-001
-fec7f2d3-c4f7-4abc-bb31-b2a8583ed74b,Test Student,test@student.com,test123,std,2
-de95629b-c8a5-400d-a1de-284c3050df82,sahil,sahil@student.com,pass123,std,3

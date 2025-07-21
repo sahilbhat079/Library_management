@@ -6,6 +6,8 @@ import com.company.MultiModule.models.Book;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,13 +21,56 @@ public class BookService {
 
     private BookService() {
         // Dummy data
-        Book book = new Book.Builder<>()
-                .title("Clean Code")
-                .author("Robert C. Martin")
-                .category("Programming")
-                .isbn("1234567")
-                .build();
-        books.put(book.getId(), book);
+//        Book book = new Book.Builder<>()
+//                .title("Clean Code")
+//                .author("Robert C. Martin")
+//                .category("Programming")
+//                .isbn("1234567")
+//                .build();
+//        books.put(book.getId(), book);
+
+
+        if (!Files.exists(Paths.get(BOOK_CSV_FILE))) {
+            // Add dummy books only on first run
+            addBook(new Book.Builder<>()
+                    .title("Clean Code")
+                    .author("Robert C. Martin")
+                    .category("Programming")
+                    .isbn("00001")
+                    .build());
+
+            addBook(new Book.Builder<>()
+                    .title("Effective Java")
+                    .author("Joshua Bloch")
+                    .category("Programming")
+                    .isbn("00002")
+                    .build());
+
+            addBook(new Book.Builder<>()
+                    .title("The Pragmatic Programmer")
+                    .author("Andrew Hunt")
+                    .category("Software Engineering")
+                    .isbn("00003")
+                    .build());
+
+            addBook(new Book.Builder<>()
+                    .title("Head First Java")
+                    .author("Kathy Sierra")
+                    .category("Java")
+                    .isbn("00004")
+                    .build());
+
+            addBook(new Book.Builder<>()
+                    .title("Introduction to Algorithms")
+                    .author("Thomas H. Cormen")
+                    .category("Algorithms")
+                    .isbn("00005")
+                    .build());
+
+            saveToCsv(); // Save to disk
+        }
+
+
     }
 
     public static BookService getInstance() {
