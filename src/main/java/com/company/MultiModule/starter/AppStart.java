@@ -6,49 +6,43 @@ import com.company.MultiModule.models.Book;
 import com.company.MultiModule.models.Student;
 import com.company.MultiModule.models.User;
 import com.company.MultiModule.models.Librarian;
-import com.company.MultiModule.services.BackupService;
-import com.company.MultiModule.services.BookService;
-import com.company.MultiModule.services.BorrowService;
-import com.company.MultiModule.services.UserService;
+import com.company.MultiModule.services.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class AppStart {
-    // ANSI escape code for green text
-    public static final String GREEN = "\u001B[32m";
-    public static final String RESET = "\u001B[0m";
-    public static final String RED = "\u001B[31m";
 
+    // ANSI escape codes for colored output
+    public static final String GREEN = "\u001B[32m";
+    public static final String RED = "\u001B[31m";
+    public static final String CYAN = "\u001B[36m";
+    public static final String RESET = "\u001B[0m";
 
     private final Scanner scanner = new Scanner(System.in);
-    //Singleton pattern
+
     private final BookService bookService = BookService.getInstance();
     private final BorrowService borrowService = BorrowService.getInstance();
     private final UserService userService = UserService.getInstance();
 
-
     private User loggedInUser;
 
     public void run() {
-        System.out.println("📚 Welcome to the Library Management System!");
+        System.out.println(CYAN + "\n========= Welcome to the Library Management System =========\n" + RESET);
 
-
-
-        // Load data before login
+        // Load persisted data
         bookService.loadFromCsv();
         userService.loadFromCsv();
 
         login();
-
-        // Start periodic backup
         BackupService.getInstance().startPeriodicBackup();
 
         boolean exit = false;
 
         while (!exit) {
             printMenu();
-            String choice = scanner.nextLine();
+            String choice = scanner.nextLine().trim();
 
             switch (choice) {
                 case "1" -> handleListBooks();
@@ -57,38 +51,38 @@ public class AppStart {
                 case "4" -> handleSearchBook();
                 case "5" -> {
                     if (isLibrarian()) handleAddBook();
-                    else System.out.println(" Only librarians can add books.");
+                    else System.out.println(RED + " Only librarians can add books." + RESET);
                 }
                 case "6" -> {
                     if (isLibrarian()) handleAddUser();
-                    else System.out.println(" Only librarians can add users.");
+                    else System.out.println(RED + " Only librarians can add users." + RESET);
                 }
                 case "7" -> handleManualBackup();
                 case "8" -> handleAdminReport();
                 case "9" -> {
-                    System.out.println(" Exiting system. Goodbye!");
+                    System.out.println(CYAN + "\n Exiting system. Goodbye!\n" + RESET);
                     BackupService.getInstance().shutdown();
                     userService.saveToCsv();
                     bookService.saveToCsv();
                     exit = true;
                 }
-                default -> System.out.println("Invalid option. Try again.");
+                default -> System.out.println(RED + " Invalid option. Try again." + RESET);
             }
         }
     }
 
     private void login() {
-        System.out.print("Enter username: ");
+        System.out.print("Username: ");
         String name = scanner.nextLine();
 
-        System.out.print("Enter password: ");
+        System.out.print("Password: ");
         String password = scanner.nextLine();
 
         try {
-            loggedInUser = UserService.getInstance().login(name, password);
-            System.out.println(" Login successful! Welcome, " + loggedInUser.getName());
+            loggedInUser = userService.login(name, password);
+            System.out.println(GREEN + " Login successful. Welcome, " + loggedInUser.getName() + "!" + RESET);
         } catch (UserNotFound e) {
-            System.out.println(" Login failed: " + e.getMessage());
+            System.out.println(RED + " Login failed: " + e.getMessage() + RESET);
             System.exit(1);
         }
     }
@@ -98,7 +92,7 @@ public class AppStart {
     }
 
     private void printMenu() {
-        System.out.println("\n\uD83D\uDCCB Menu:");
+        System.out.println(CYAN + "\n------------------ MENU ------------------" + RESET);
         System.out.println("1. List all books");
         System.out.println("2. Borrow book");
         System.out.println("3. Return book");
@@ -108,82 +102,78 @@ public class AppStart {
             System.out.println("6. Add user");
         }
         System.out.println("7. Manual backup");
-        System.out.println("8. Generate Admin Report");
+        System.out.println("8. Generate admin report");
         System.out.println("9. Exit");
-        System.out.print("Select an option: ");
+        System.out.print(CYAN + "Select an option: " + RESET);
     }
 
-    // === Placeholder handlers ===
     private void handleListBooks() {
-
         List<Book> books = bookService.listAllBooks();
 
         if (books.isEmpty()) {
-            System.out.println("No books available.");
-        } else {
-            System.out.println(GREEN + "\n==========  AVAILABLE BOOKS  ==========" + RESET);
-            int index = 1;
-            for (Book book : books) {
-                System.out.println(GREEN + "\nBook #" + index++ + RESET);
-                System.out.println("  Title     : " + book.getTitle());
-                System.out.println("  Author    : " + book.getAuthor());
-                System.out.println("  Category  : " + book.getCategory());
-                System.out.println("  ISBN      : " + book.getIsbn());
-                System.out.println(GREEN + "----------------------------------------" + RESET);
-            }
+            System.out.println(RED + " No books available." + RESET);
+            return;
         }
 
+        System.out.println(GREEN + "\n========= AVAILABLE BOOKS =========" + RESET);
+        int index = 1;
+        for (Book book : books) {
+            System.out.printf(GREEN + "\nBook #%d\n" + RESET, index++);
+            System.out.println("  Title    : " + book.getTitle());
+            System.out.println("  Author   : " + book.getAuthor());
+            System.out.println("  Category : " + book.getCategory());
+            System.out.println("  ISBN     : " + book.getIsbn());
+        }
     }
 
     private void handleBorrowBook() {
-        System.out.print("Enter ISBN of the book to borrow: ");
+        System.out.print("Enter ISBN to borrow: ");
         String isbn = scanner.nextLine().trim();
 
         try {
-            Book book = bookService.findByIsbn(isbn); // get the book object first
-            borrowService.borrowBook(loggedInUser, book.getId()); // use the book ID internally
-            System.out.println(GREEN + "Book borrowed successfully." + RESET);
+            Book book = bookService.findByIsbn(isbn);
+            borrowService.borrowBook(loggedInUser, book.getId());
+            System.out.println(GREEN + " Book borrowed successfully." + RESET);
         } catch (LibraryException e) {
-            System.out.println("Failed to borrow book: " + e.getMessage());
+            System.out.println(RED + " Failed to borrow book: " + e.getMessage() + RESET);
         }
     }
 
     private void handleReturnBook() {
-        System.out.print("Enter ISBN of the book to return: ");
+        System.out.print("Enter ISBN to return: ");
         String isbn = scanner.nextLine().trim();
 
         try {
-            Book book = bookService.findByIsbn(isbn); // get book object from ISBN
-            borrowService.returnBook(loggedInUser, book.getId()); // use internal ID
-            System.out.println(GREEN + "Book returned successfully." + RESET);
+            Book book = bookService.findByIsbn(isbn);
+            borrowService.returnBook(loggedInUser, book.getId());
+            System.out.println(GREEN + " Book returned successfully." + RESET);
         } catch (LibraryException e) {
-            System.out.println("Failed to return book: " + e.getMessage());
+            System.out.println(RED + " Failed to return book: " + e.getMessage() + RESET);
         }
     }
 
     private void handleSearchBook() {
-        System.out.print("Enter title or author to search: ");
+        System.out.print("Search by title or author: ");
         String keyword = scanner.nextLine();
 
-        List<Book> found = bookService.search(keyword);
-        if (found.isEmpty()) {
-            System.out.println("No books found matching keyword: " + keyword);
+        List<Book> results = bookService.search(keyword);
+        if (results.isEmpty()) {
+            System.out.println(RED + " No books found." + RESET);
         } else {
-            System.out.println(GREEN + "\n=== Search Results ===" + RESET);
+            System.out.println(GREEN + "\n========= SEARCH RESULTS =========" + RESET);
             int index = 1;
-            for (Book book : found) {
-                System.out.println(GREEN + "\nResult #" + index++ + RESET);
-                System.out.println("  Title     : " + book.getTitle());
-                System.out.println("  Author    : " + book.getAuthor());
-                System.out.println("  ISBN      : " + book.getIsbn());
-                System.out.println("  Category  : " + book.getCategory());
-                System.out.println(GREEN + "-----------------------------" + RESET);
+            for (Book book : results) {
+                System.out.printf(GREEN + "\nResult #%d\n" + RESET, index++);
+                System.out.println("  Title    : " + book.getTitle());
+                System.out.println("  Author   : " + book.getAuthor());
+                System.out.println("  Category : " + book.getCategory());
+                System.out.println("  ISBN     : " + book.getIsbn());
             }
         }
     }
 
     private void handleAddBook() {
-        System.out.println("\n=== Add a New Book ===");
+        System.out.println(CYAN + "\n========= Add a New Book =========" + RESET);
 
         System.out.print("Title     : ");
         String title = scanner.nextLine();
@@ -207,34 +197,31 @@ public class AppStart {
         bookService.addBook(book);
         bookService.saveToCsv();
 
-        System.out.println(GREEN + "✔ Book added successfully!" + RESET);
-        System.out.println(GREEN + "   ↪ Book ID  : " + book.getId() + RESET);
-        System.out.println(GREEN + "   ↪ ISBN     : " + book.getIsbn() + RESET);
+        System.out.println(GREEN + " Book added successfully." + RESET);
+        System.out.println(" Book ID : " + book.getId());
+        System.out.println(" ISBN    : " + book.getIsbn());
     }
 
     private void handleAddUser() {
-        System.out.println("\n====================");
-        System.out.println("   Add New Library User");
-        System.out.println("====================");
+        System.out.println(CYAN + "\n========= Add New User =========" + RESET);
 
-        System.out.println("\nSelect user role:");
-        System.out.println("  [std] - Student");
-        System.out.println("  [lib] - Librarian");
-        System.out.print("\nEnter Role        : ");
+        System.out.print("Role [std/lib]     : ");
         String role = scanner.nextLine().trim().toLowerCase();
 
-        System.out.print("Enter Name        : ");
+        System.out.print("Name               : ");
         String name = scanner.nextLine();
-        System.out.print("Enter Email       : ");
+
+        System.out.print("Email              : ");
         String email = scanner.nextLine();
-        System.out.print("Enter Password    : ");
+
+        System.out.print("Password           : ");
         String password = scanner.nextLine();
 
         User newUser;
 
         switch (role) {
             case "std" -> {
-                System.out.print("Enter Borrow Limit: ");
+                System.out.print("Borrow Limit       : ");
                 int limit = Integer.parseInt(scanner.nextLine());
                 newUser = new Student.StudentBuilder()
                         .name(name)
@@ -244,7 +231,7 @@ public class AppStart {
                         .build();
             }
             case "lib" -> {
-                System.out.print("Enter Emp. Code   : ");
+                System.out.print("Employee Code      : ");
                 String code = scanner.nextLine();
                 newUser = new Librarian.LibrarianBuilder()
                         .name(name)
@@ -254,28 +241,32 @@ public class AppStart {
                         .build();
             }
             default -> {
-                System.out.println(RED + "\n Invalid role! Use 'std' or 'lib' only." + RESET);
+                System.out.println(RED + " Invalid role. Use 'std' or 'lib' only." + RESET);
                 return;
             }
         }
 
         userService.addUser(newUser);
-        System.out.println(GREEN + "\n User added successfully!" + RESET);
-        System.out.println("Assigned User ID  : " + newUser.getId());
+        System.out.println(GREEN + " User added successfully!" + RESET);
+        System.out.println(" User ID : " + newUser.getId());
     }
 
     private void handleManualBackup() {
-//        System.out.println("Performing manual backup...");
         BackupService.getInstance().backupNow();
+        System.out.println(GREEN + " Manual backup completed." + RESET);
     }
+
     private void handleAdminReport() {
-        if (!(loggedInUser instanceof Librarian)) {
-            System.out.println(" Only librarians can generate admin reports.");
+        if (!isLibrarian()) {
+            System.out.println(RED + " Only librarians can generate reports." + RESET);
             return;
         }
 
-//        new AdminReportGenerator().generate();
+        ReportService.getInstance().generateReport(
+                bookService.listAllBooks(),
+                new ArrayList<>(userService.getAllUsers().values())
+        );
+
+        System.out.println(GREEN + " Admin report generated." + RESET);
     }
-
-
 }

@@ -85,6 +85,15 @@ public class UserService {
 
 
 
+    public User findByEmail(String email) {
+        return users.values().stream()
+                .filter(user -> user.getEmail().equalsIgnoreCase(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+
+
     // for the report
     public void saveToCsv() {
         try {

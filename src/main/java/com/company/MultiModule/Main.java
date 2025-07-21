@@ -1,5 +1,7 @@
 package com.company.MultiModule;
 
+import com.company.MultiModule.multithreadsimulation.LibrarySimulation;
+
 import java.lang.reflect.Method;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -12,7 +14,6 @@ public class Main {
 
             // Create instance
             Object appInstance = appClass.getDeclaredConstructor().newInstance();
-
             // Invoke run() method
             Method runMethod = appClass.getMethod("run");
             runMethod.invoke(appInstance);
@@ -20,5 +21,18 @@ public class Main {
             System.err.println(" Failed to launch AppStart using reflection: " + e.getMessage());
             e.printStackTrace();
         }
+
+
+
+        //tried to stimulate the synchronised book borrow
+//        try {
+//            LibrarySimulation simulation = new LibrarySimulation();
+//            simulation.run();
+//        } catch (Exception e) {
+//            System.out.println("Simulation failed: " + e.getMessage());
+//        }
+
+
+
     }
 }
