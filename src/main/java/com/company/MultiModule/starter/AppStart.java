@@ -72,18 +72,24 @@ public class AppStart {
     }
 
     private void login() {
-        System.out.print("Username: ");
-        String name = scanner.nextLine();
+        while (true) {
+            try {
+                System.out.print("Username: ");
+                String name = scanner.nextLine();
 
-        System.out.print("Password: ");
-        String password = scanner.nextLine();
+                System.out.print("Password: ");
+                String password = scanner.nextLine();
 
-        try {
-            loggedInUser = userService.login(name, password);
-            System.out.println(GREEN + " Login successful. Welcome, " + loggedInUser.getName() + "!" + RESET);
-        } catch (UserNotFound e) {
-            System.out.println(RED + " Login failed: " + e.getMessage() + RESET);
-            System.exit(1);
+                loggedInUser = userService.login(name, password);
+                System.out.println(GREEN + " Login successful. Welcome, " + loggedInUser.getName() + "!" + RESET);
+                break;
+            } catch (UserNotFound e) {
+                System.out.println(RED + " Login failed: " + e.getMessage() + RESET);
+            } catch (Exception e) {
+                System.out.println(RED + " Unexpected error occurred: " + e.getMessage() + RESET);
+            }
+
+            System.out.println(CYAN + " Please try again.\n" + RESET);
         }
     }
 

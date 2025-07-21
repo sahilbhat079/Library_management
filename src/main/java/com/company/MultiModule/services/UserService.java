@@ -15,6 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 public class UserService {
+
+//     Debug output with color and center formatting
+    final String CYAN = "\u001B[36m";
+    final String RESET = "\u001B[0m";
+    final int BOX_WIDTH = 60;
+    final int CONSOLE_WIDTH = 80;
+
+
+
     private static final String USER_CSV_FILE = "data/users.csv";
 
     private static final UserService instance = new UserService();
@@ -40,10 +49,40 @@ public class UserService {
         users.put(student.getId(), student);
 
         // Debug output
-        System.out.println("Dummy users loaded:");
-        users.values().forEach(u ->
-                System.out.println("  Username: " + u.getName() + ", Password: " + u.getPassword() + ", Role: " + u.getClass().getSimpleName()));
+        String title = "DUMMY USERS LOADED";
+
+// Top border
+        System.out.println(CYAN + "+" + "-".repeat(BOX_WIDTH - 2) + "+" + RESET);
+
+// Title line centered
+        System.out.println(CYAN + "|" + centerText(title, BOX_WIDTH - 2) + "|" + RESET);
+
+// Separator
+        System.out.println(CYAN + "+" + "-".repeat(BOX_WIDTH - 2) + "+" + RESET);
+
+// User info lines
+        users.values().forEach(u -> {
+            String info = String.format("Username: %s, Password: %s, Role: %s",
+                    u.getName(), u.getPassword(), u.getClass().getSimpleName());
+            System.out.println(CYAN + "|" + padRight(info, BOX_WIDTH - 2) + "|" + RESET);
+        });
+
+// Bottom border
+        System.out.println(CYAN + "+" + "-".repeat(BOX_WIDTH - 2) + "+" + RESET);
     }
+
+
+    private String centerText(String text, int width) {
+        int padding = (width - text.length()) / 2;
+        return " ".repeat(Math.max(0, padding)) + text + " ".repeat(Math.max(0, width - padding - text.length()));
+    }
+
+    private String padRight(String text, int width) {
+        return text + " ".repeat(Math.max(0, width - text.length()));
+    }
+
+
+
 
     public static UserService getInstance() {
         return instance;
