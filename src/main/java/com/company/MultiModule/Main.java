@@ -24,7 +24,7 @@ public class Main {
 
 
 
-        //tried to stimulate the synchronised book borrow
+        //tried to stimulate the synchronised book borrow just for the test
 //        try {
 //            LibrarySimulation simulation = new LibrarySimulation();
 //            simulation.run();

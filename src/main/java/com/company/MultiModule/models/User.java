@@ -20,12 +20,12 @@ public abstract class User  {
     public String getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }
-    public String getPassword() { return password; }  // 🔐 Expose carefully (maybe not in real apps)
+    public String getPassword() { return password; }
 
     @Override
     public String toString() {
         return String.format("User{id='%s', name='%s', email='%s'}", id, name, email);
-        // 🔒 Avoid showing password
+        //  Avoid showing password
     }
 
     @Override
