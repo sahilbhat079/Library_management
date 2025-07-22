@@ -15,10 +15,11 @@ import java.util.Scanner;
 public class AppStart {
 
     // ANSI escape codes for colored output
-    public static final String GREEN = "\u001B[32m";
-    public static final String RED = "\u001B[31m";
-    public static final String CYAN = "\u001B[36m";
-    public static final String RESET = "\u001B[0m";
+    private static final String RED = "\u001B[31m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String CYAN = "\u001B[36m";
+    private static final String RESET = "\u001B[0m";
+    private static final String BOLD = "\u001B[1m";
 
     private final Scanner scanner = new Scanner(System.in);
 
@@ -74,24 +75,30 @@ public class AppStart {
     private void login() {
         while (true) {
             try {
-                System.out.print("Username: ");
-                String name = scanner.nextLine();
+                System.out.println(CYAN + "\n╔══════════════════════════════╗");
+                System.out.println("║        USER LOGIN PORTAL     ║");
+                System.out.println("╚══════════════════════════════╝" + RESET);
 
-                System.out.print("Password: ");
-                String password = scanner.nextLine();
+                System.out.print(BOLD + "Username : " + RESET);
+                String name = scanner.nextLine().trim();
+
+                System.out.print(BOLD + "Password : " + RESET);
+                char[] password = scanner.nextLine().trim().toCharArray();
 
                 loggedInUser = userService.login(name, password);
-                System.out.println(GREEN + " Login successful. Welcome, " + loggedInUser.getName() + "!" + RESET);
+                System.out.println(GREEN + "\nLogin successful. Welcome, " + loggedInUser.getName() + "!" + RESET);
                 break;
+
             } catch (UserNotFound e) {
-                System.out.println(RED + " Login failed: " + e.getMessage() + RESET);
+                System.out.println(RED + "\nLogin failed: " + e.getMessage() + RESET);
             } catch (Exception e) {
-                System.out.println(RED + " Unexpected error occurred: " + e.getMessage() + RESET);
+                System.out.println(RED + "\nUnexpected error: " + e.getMessage() + RESET);
             }
 
-            System.out.println(CYAN + " Please try again.\n" + RESET);
+            System.out.println(CYAN + "Please try again.\n" + RESET);
         }
     }
+
 
     private boolean isLibrarian() {
         return loggedInUser instanceof Librarian;
@@ -221,7 +228,7 @@ public class AppStart {
         String email = scanner.nextLine();
 
         System.out.print("Password           : ");
-        String password = scanner.nextLine();
+        char[] password = scanner.nextLine().toCharArray();
 
         User newUser;
 
@@ -268,11 +275,18 @@ public class AppStart {
             return;
         }
 
-        ReportService.getInstance().generateReport(
-                bookService.listAllBooks(),
-                new ArrayList<>(userService.getAllUsers().values())
-        );
+        System.out.println(CYAN + "\n1. Generate Book Report");
+        System.out.println("2. Generate User Report");
+        System.out.print("Select: " + RESET);
 
-        System.out.println(GREEN + " Admin report generated." + RESET);
+        String option = scanner.nextLine().trim();
+        ReportService reportService = ReportService.getInstance();
+
+        switch (option) {
+            case "1" -> reportService.generateBookReport(bookService.listAllBooks());
+            case "2" -> reportService.generateUserReport(new ArrayList<>(userService.getAllUsers().values()));
+            default -> System.out.println(RED + "Invalid choice." + RESET);
+        }
     }
+
 }

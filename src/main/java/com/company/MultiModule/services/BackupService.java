@@ -12,6 +12,7 @@ public class BackupService {
     private static final String BACKUP_DIR = "data/backup";
     private static final long BACKUP_INTERVAL_MINUTES = 5;
 
+    //auto colasable
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private static BackupService instance;

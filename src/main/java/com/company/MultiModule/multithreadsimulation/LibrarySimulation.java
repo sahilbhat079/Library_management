@@ -53,14 +53,14 @@ public class LibrarySimulation {
         User user1 = new Student.StudentBuilder()
                 .name("Alice")
                 .email("alice@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .borrowLimit(1)
                 .build();
 
         User user2 = new Student.StudentBuilder()
                 .name("Bob")
                 .email("bob@example.com")
-                .password("456")
+                .password("456".toCharArray())
                 .borrowLimit(1)
                 .build();
 

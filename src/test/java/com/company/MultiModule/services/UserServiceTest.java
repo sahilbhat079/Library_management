@@ -23,14 +23,14 @@ class UserServiceTest {
 
     @Test
     void testLoginSuccess() throws UserNotFound {
-        User user = userService.login("sahil", "pass123");
+        User user = userService.login("sahil", "pass123".toCharArray());
         assertNotNull(user);
         assertEquals("sahil", user.getName());
     }
 
     @Test
     void testLoginFailure() {
-        assertThrows(UserNotFound.class, () -> userService.login("wrong", "password"));
+        assertThrows(UserNotFound.class, () -> userService.login("wrong", "password".toCharArray()));
     }
 
     @Test
@@ -38,7 +38,7 @@ class UserServiceTest {
         Student student = new Student.StudentBuilder()
                 .name("Test Student")
                 .email("test@student.com")
-                .password("test123")
+                .password("test123".toCharArray())
                 .borrowLimit(2)
                 .build();
 

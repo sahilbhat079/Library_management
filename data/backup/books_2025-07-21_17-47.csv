@@ -1,6 +1,0 @@
-id,isbn,title,author,category,available
-b6b1eb88-258d-4b3b-8b13-8965ba05df00,00005,Introduction to Algorithms,Thomas H. Cormen,Algorithms,true
-99c5986e-7c97-4ae4-853a-0c8345c67b4d,00002,Effective Java,Joshua Bloch,Programming,true
-d11dc802-dc26-445f-bc44-afe43b0e9b2a,00003,The Pragmatic Programmer,Andrew Hunt,Software Engineering,true
-e2e6e05e-b755-4849-9f4f-1c61dcb10e92,00001,Clean Code,Robert C. Martin,Programming,true
-3a3896e3-a5db-4c9e-b66b-f52f64eb747d,00004,Head First Java,Kathy Sierra,Java,true

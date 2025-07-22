@@ -127,8 +127,6 @@ public class BookService {
 
     // file utility
 
-
-
     public void saveToCsv() {
         try {
             List<String> lines = new ArrayList<>();
@@ -192,6 +190,11 @@ public class BookService {
 
     private String unescape(String s) {
         return s.replace("%2C", ",");
+    }
+
+
+    public void clearTestData() {
+        books.entrySet().removeIf(entry -> entry.getValue().getIsbn().startsWith("TEST-"));
     }
 
 }

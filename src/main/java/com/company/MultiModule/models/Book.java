@@ -88,6 +88,7 @@ public class Book {
             return self();
         }
 
+        @SuppressWarnings("unchecked")
         protected T self() {
             return (T) this;
         }

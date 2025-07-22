@@ -11,7 +11,7 @@ class StudentTest {
         Student student = new Student.StudentBuilder()
                 .name("Alice")
                 .email("alice@example.com")
-                .password("pass123")
+                .password("pass123".toCharArray())
                 .borrowLimit(5)
                 .build();
 
@@ -28,13 +28,13 @@ class StudentTest {
         Student s1 = new Student.StudentBuilder()
                 .name("Test")
                 .email("t@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .build();
 
         Student s2 = new Student.StudentBuilder()
                 .name("Test")
                 .email("t@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .build();
 
         assertNotEquals(s1, s2); // different IDs

@@ -3,69 +3,63 @@ package com.company.MultiModule.services;
 import com.company.MultiModule.models.Book;
 import com.company.MultiModule.models.Student;
 import com.company.MultiModule.models.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ReportServiceTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class ReportServiceTest {
 
-    private final ReportService reportService = ReportService.getInstance();
+    private ReportService reportService;
+    private static final Path BOOK_REPORT_PATH = Paths.get("data/reports/book_report.csv");
+    private static final Path USER_REPORT_PATH = Paths.get("data/reports/user_report.csv");
 
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final PrintStream originalOut = System.out;
-
-    @BeforeEach
-    void setUp() {
-        System.setOut(new PrintStream(outContent));
+    @BeforeAll
+    void setup() {
+        reportService = ReportService.getInstance();
     }
 
     @AfterEach
-    void tearDown() {
-        System.setOut(originalOut);
+    void cleanUp() throws IOException {
+        Files.deleteIfExists(BOOK_REPORT_PATH);
+        Files.deleteIfExists(USER_REPORT_PATH);
     }
 
     @Test
-    void testGenerateReport_PrintsCorrectly() {
+    void testGenerateBookReportCreatesCSV() throws IOException {
         Book book = new Book.Builder<>()
-                .title("Domain-Driven Design")
-                .author("Eric Evans")
-                .category("Software Engineering")
-                .isbn("DDD123")
+                .title("Effective Java")
+                .author("Joshua Bloch")
+                .isbn("123456")
+                .category("Programming")
                 .build();
 
-        User user = new Student.StudentBuilder()
-                .name("Test User")
-                .email("test@example.com")
-                .password("secret")
-                .borrowLimit(1)
-                .build();
+        reportService.generateBookReport(List.of(book));
 
-        reportService.generateReport(List.of(book), List.of(user));
-
-        String output = outContent.toString();
-
-        // Basic assertions to ensure key parts exist in output
-        assertTrue(output.contains("ADMIN REPORT"));
-        assertTrue(output.contains("Books Report"));
-        assertTrue(output.contains("Users Report"));
-        assertTrue(output.contains("Domain-Driven Design"));
-        assertTrue(output.contains("Test User"));
-        assertTrue(output.contains("Reflection"));
+        assertTrue(Files.exists(BOOK_REPORT_PATH), "Book report CSV file should be created.");
+        List<String> lines = Files.readAllLines(BOOK_REPORT_PATH);
+        assertTrue(lines.size() >= 2, "Report should have header + data.");
+        assertTrue(lines.get(1).contains("Effective Java"));
     }
 
     @Test
-    void testGenerateReport_WithEmptyLists() {
-        reportService.generateReport(List.of(), List.of());
-        String output = outContent.toString();
+    void testGenerateUserReportCreatesCSV() throws IOException {
+        User student = new Student.StudentBuilder()
+                .name("Alice")
+                .email("alice@example.com")
+                .password("pass123".toCharArray())
+                .borrowLimit(3)
+                .build();
 
-        assertTrue(output.contains("Books Report"));
-        assertTrue(output.contains("Users Report"));
-        assertTrue(output.contains("Report generated using Java Reflection."));
+        reportService.generateUserReport(List.of(student));
+
+        assertTrue(Files.exists(USER_REPORT_PATH), "User report CSV file should be created.");
+        List<String> lines = Files.readAllLines(USER_REPORT_PATH);
+        assertTrue(lines.size() >= 2, "Report should have header + user data.");
+        assertTrue(lines.get(1).contains("Alice"));
     }
 }

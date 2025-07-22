@@ -26,7 +26,7 @@ class BorrowServiceTest {
         student = new Student.StudentBuilder()
                 .name("Test Student")
                 .email("student@example.com")
-                .password("1234")
+                .password("1234".toCharArray())
                 .borrowLimit(1)
                 .build();
 
@@ -72,7 +72,7 @@ class BorrowServiceTest {
         Student another = new Student.StudentBuilder()
                 .name("Another Student")
                 .email("another@example.com")
-                .password("1234")
+                .password("1234".toCharArray())
                 .borrowLimit(1)
                 .build();
 
@@ -101,7 +101,7 @@ class BorrowServiceTest {
         Student random = new Student.StudentBuilder()
                 .name("Random")
                 .email("random@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .borrowLimit(1)
                 .build();
 

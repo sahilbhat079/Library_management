@@ -2,4 +2,3 @@ id,name,email,password,type,extra
 286ffb96-7248-4c59-9532-1be77f34ad16,admin,lib@library.com,admin123,lib,LIB-001
 a052ad40-8b9b-4435-8076-c9885984727c,Test Student,test@student.com,test123,std,2
 37318a19-2f31-4d46-a6f8-57e309e2c275,sahil,sahil@student.com,pass123,std,3
-1778eee7-5b22-4f7f-9efd-8424201aa3cf,sahil,sahil123@example.com,sahila,std,4

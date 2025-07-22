@@ -11,7 +11,7 @@ class LibrarianTest {
         Librarian librarian = new Librarian.LibrarianBuilder()
                 .name("Bob")
                 .email("bob@example.com")
-                .password("libpass")
+                .password("libpass".toCharArray())
                 .employeeCode("EMP101")
                 .build();
 
@@ -27,14 +27,14 @@ class LibrarianTest {
         Librarian l1 = new Librarian.LibrarianBuilder()
                 .name("Bob")
                 .email("bob@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .employeeCode("EMP1")
                 .build();
 
         Librarian l2 = new Librarian.LibrarianBuilder()
                 .name("Bob")
                 .email("bob@example.com")
-                .password("123")
+                .password("123".toCharArray())
                 .employeeCode("EMP1")
                 .build();
 
