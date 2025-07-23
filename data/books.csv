@@ -1,8 +1,7 @@
 id,isbn,title,author,category,available
-f97960ae-8a75-4287-8343-cb75f75dafcd,00005,Introduction to Algorithms,Thomas H. Cormen,Algorithms,true
-4d11062e-9c08-4c5b-bcd1-31da8ea403ad,00004,Head First Java,Kathy Sierra,Java,true
-14ab115a-4cd6-4ef7-8f4d-15c05d7f775f,TEST-PERSIST,Persist Me,File Writer,Persistence,true
-c018b171-41be-45b6-b73f-25b2e2150a36,00003,The Pragmatic Programmer,Andrew Hunt,Software Engineering,true
-04409735-8d33-47c1-b845-703f3680aacf,00002,Effective Java,Joshua Bloch,Programming,true
-837c0eaa-c06c-4536-8a4b-4b9d47a3084c,,,,,true
-1b05b048-a751-4891-9ee0-90e80b575086,00001,Clean Code,Robert C. Martin,Programming,true
+3bc4cedf-9007-4af4-96ba-64d9985e82a3,00004,Head First Java,Kathy Sierra,Java,true
+11fd3682-6057-412c-80ea-f2eb9b74ab6d,00002,Effective Java,Joshua Bloch,Programming,true
+3c851c96-ff2b-42a2-baf8-f3434bd463f0,00003,The Pragmatic Programmer,Andrew Hunt,Software Engineering,true
+4b1a69b7-1ccd-40ef-92b9-dd536cf5b59b,00001,Clean Code,Robert C. Martin,Programming,true
+f357b3b9-bf06-4a35-bc61-b68f9aafbc8e,00005,Introduction to Algorithms,Thomas H. Cormen,Algorithms,true
+3d159aff-78a1-4450-b03a-55918299c8b7,TEST-PERSIST,Persist Me,File Writer,Persistence,true

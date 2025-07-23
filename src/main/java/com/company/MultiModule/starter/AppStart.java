@@ -1,7 +1,6 @@
 package com.company.MultiModule.starter;
 
-import com.company.MultiModule.exceptions.LibraryException;
-import com.company.MultiModule.exceptions.UserNotFound;
+import com.company.MultiModule.exceptions.*;
 import com.company.MultiModule.models.Book;
 import com.company.MultiModule.models.Student;
 import com.company.MultiModule.models.User;
@@ -198,12 +197,26 @@ public class AppStart {
 
         try {
             Book book = bookService.findByIsbn(isbn);
+
+//            if(!book.isAvailable()){
+//                System.out.println("Currently book is not available Borrowed By Someone else");
+//                return;
+//            }
+
             borrowService.borrowBook(loggedInUser, book.getId());
             System.out.println(GREEN + " Book borrowed successfully." + RESET);
-        } catch (LibraryException e) {
+        }
+        catch (BookNotFound | BorrowLimitExceed e) {
+            System.out.println(RED + e.getMessage() + RESET);
+        }
+        catch (BookUnavailableException e) {
+            System.out.println(RED + " Waited 5 seconds, but book is still not available: " + e.getMessage() + RESET);
+        }
+        catch (LibraryException e) {
             System.out.println(RED + " Failed to borrow book: " + e.getMessage() + RESET);
         }
     }
+
 
     private void handleReturnBook() {
         System.out.print("Enter ISBN to return: ");
@@ -218,7 +231,11 @@ public class AppStart {
             Book book = bookService.findByIsbn(isbn);
             borrowService.returnBook(loggedInUser, book.getId());
             System.out.println(GREEN + " Book returned successfully." + RESET);
-        } catch (LibraryException e) {
+        }
+        catch (BookNotFound bookNotFound){
+            System.out.println(RED  + bookNotFound.getMessage()  + RESET);
+        }
+        catch (LibraryException e) {
             System.out.println(RED + " Failed to return book: " + e.getMessage() + RESET);
         }
     }

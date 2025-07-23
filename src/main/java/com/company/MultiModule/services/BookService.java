@@ -1,6 +1,7 @@
 package com.company.MultiModule.services;
 
 import com.company.MultiModule.Repository.CsvStorage;
+import com.company.MultiModule.exceptions.BookNotFound;
 import com.company.MultiModule.exceptions.LibraryException;
 import com.company.MultiModule.models.Book;
 
@@ -116,7 +117,8 @@ public class BookService {
         return books.values().stream()
                 .filter(b -> b.getIsbn().equalsIgnoreCase(isbn))
                 .findFirst()
-                .orElseThrow(() -> new LibraryException("Book with ISBN not found: " + isbn));
+                .orElseThrow(() -> new BookNotFound("Book Not Found with ISBN : " + isbn));
+
     }
 
 
@@ -181,7 +183,6 @@ public class BookService {
             System.out.println(" Failed to load books from CSV: " + e.getMessage());
         }
     }
-
 
 
     private String escape(String s) {

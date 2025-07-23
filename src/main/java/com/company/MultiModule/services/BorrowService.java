@@ -7,6 +7,7 @@ import com.company.MultiModule.exceptions.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
 
@@ -14,7 +15,7 @@ public class BorrowService {
 
     private static final BorrowService instance = new BorrowService();
 
-    private final Map<String, Set<String>> borrowMap = new HashMap<>();
+    private final Map<String, Set<String>> borrowMap = new ConcurrentHashMap<>();
     private final BookService bookService = BookService.getInstance();
 
     private final Map<String, ReentrantLock> bookLocks = new ConcurrentHashMap<>();
@@ -37,12 +38,18 @@ public class BorrowService {
             }
 
             Book book = bookService.findById(bookId);
-            if (book == null) throw new BookNotFound(bookId);
+            if (book == null) {
+                throw new BookNotFound("Book with ISBN not found: " + bookId);
+            }
 
+            long timeout = 5; // seconds
             while (!book.isAvailable()) {
                 System.out.printf("%s is waiting for \"%s\" to become available.%n", user.getName(), book.getTitle());
                 try {
-                    condition.await();
+                    boolean available = condition.await(timeout, TimeUnit.SECONDS);
+                    if (!available) {
+                        throw new BookUnavailableException(book.getTitle(), timeout);
+                    }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new LibraryException("Thread interrupted while waiting for book.");
@@ -52,7 +59,7 @@ public class BorrowService {
             Set<String> borrowed = borrowMap.computeIfAbsent(user.getId(), k -> new HashSet<>());
 
             if (borrowed.size() >= student.getBorrowLimit()) {
-                throw new BorrowLimitExceed(student.getId(), student.getBorrowLimit());
+                throw new BorrowLimitExceed(student.getName(), student.getBorrowLimit());
             }
 
             borrowed.add(bookId);
@@ -64,6 +71,7 @@ public class BorrowService {
         }
     }
 
+
     public void returnBook(User user, String bookId) throws LibraryException {
         ReentrantLock lock = bookLocks.computeIfAbsent(bookId, id -> new ReentrantLock());
         Condition condition = bookConditions.computeIfAbsent(bookId, id -> lock.newCondition());
@@ -71,15 +79,20 @@ public class BorrowService {
         lock.lock();
         try {
             Book book = bookService.findById(bookId);
-            if (book == null) throw new BookNotFound(bookId);
+            if (book == null) {
+                throw new BookNotFound("Book not found: " + bookId);
+            }
 
-            Set<String> borrowed = borrowMap.getOrDefault(user.getId(), Set.of());
-
-            if (!borrowed.contains(bookId)) {
+            Set<String> borrowed = borrowMap.get(user.getId());
+            if (borrowed == null || !borrowed.contains(bookId)) {
                 throw new BookNotBorrowedByUser(user.getName(), book.getIsbn());
             }
 
             borrowed.remove(bookId);
+            if (borrowed.isEmpty()) {
+                borrowMap.remove(user.getId());
+            }
+
             bookService.setAvailability(bookId, true);
             System.out.printf("%s returned \"%s\" and notified others.%n", user.getName(), book.getTitle());
 
@@ -90,7 +103,10 @@ public class BorrowService {
         }
     }
 
+
     public Set<String> getBorrowedBooks(String userId) {
         return borrowMap.getOrDefault(userId, Set.of());
     }
+
+
 }

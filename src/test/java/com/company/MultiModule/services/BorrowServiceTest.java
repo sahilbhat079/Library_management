@@ -23,6 +23,9 @@ class BorrowServiceTest {
 
     @BeforeEach
     void setUp() {
+//        borrowService.clearAll(); // added method in BorrowService
+//        bookService.clearBooks(); // added method in BookService
+
         student = new Student.StudentBuilder()
                 .name("Test Student")
                 .email("student@example.com")
@@ -44,6 +47,7 @@ class BorrowServiceTest {
     void testSuccessfulBorrow() throws LibraryException {
         borrowService.borrowBook(student, book.getId());
         assertFalse(bookService.findById(book.getId()).isAvailable());
+        assertTrue(borrowService.getBorrowedBooks(student.getId()).contains(book.getId()));
     }
 
     @Test
@@ -62,7 +66,7 @@ class BorrowServiceTest {
             borrowService.borrowBook(student, secondBook.getId());
         });
 
-        assertEquals("User '" + student.getId() + "' has exceeded the borrow limit of 1 books.", ex.getMessage());
+        assertEquals("User 'Test Student' has exceeded the borrow limit of 1 books.", ex.getMessage());
     }
 
     @Test
@@ -86,15 +90,14 @@ class BorrowServiceTest {
             }
         });
 
-        // Wait briefly and return the book
         TimeUnit.MILLISECONDS.sleep(500);
         borrowService.returnBook(student, book.getId());
-
-        // Wait for thread to complete
         future.get(2, TimeUnit.SECONDS);
 
+        assertTrue(borrowService.getBorrowedBooks(another.getId()).contains(book.getId()));
         executor.shutdown();
     }
+
 
     @Test
     void testReturnWithoutBorrowing() {
@@ -109,4 +112,48 @@ class BorrowServiceTest {
             borrowService.returnBook(random, book.getId());
         });
     }
+
+    @Test
+    void testBookNotFound() {
+        LibraryException ex = assertThrows(BookNotFound.class, () -> {
+            borrowService.borrowBook(student, UUID.randomUUID().toString());
+        });
+
+        assertTrue(ex.getMessage().contains("Book with ISBN not found"));
+    }
+
+
+
+    @Test
+    void testBookUnavailableTimeout() throws Exception {
+        // First student borrows the book
+        borrowService.borrowBook(student, book.getId());
+
+        // Another student tries to borrow the same book, which should timeout
+        Student waiter = new Student.StudentBuilder()
+                .name("Waiter Student")
+                .email("waiter@example.com")
+                .password("wait123".toCharArray())
+                .borrowLimit(1)
+                .build();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        Future<?> future = executor.submit(() -> {
+            BookUnavailableException ex = assertThrows(BookUnavailableException.class, () -> {
+                borrowService.borrowBook(waiter, book.getId()); // should timeout
+            });
+
+            assertTrue(ex.getMessage().contains("not available after waiting"));
+        });
+
+        future.get(10, TimeUnit.SECONDS); // wait max 10 seconds for the test to complete
+        executor.shutdown();
+    }
+
+
+
+
+
+
 }

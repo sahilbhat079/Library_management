@@ -1,4 +1,4 @@
 id,name,email,password,type,extra
-97df100f-7b75-49bc-b2aa-87b615a7766c,sahil,sahil@student.com,pass123,std,3
-1550d0d6-53d6-4760-b69a-893014f739f2,Test Student,test@student.com,test123,std,2
-2f8d47bf-7330-4b4e-93a2-100bf867aadc,admin,lib@library.com,admin123,lib,LIB-001
+533e1629-4743-464d-86dc-2d9be81ec423,admin,lib@library.com,admin123,lib,LIB-001
+e4f2b80e-51b5-4ced-aea1-ac72a1afd16b,Test Student,test@student.com,test123,std,2
+73ae913e-1799-40a9-b0a6-2d2a5ad8023d,sahil,sahil@student.com,pass123,std,3
