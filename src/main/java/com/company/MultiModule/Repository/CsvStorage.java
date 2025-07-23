@@ -10,10 +10,20 @@ public class CsvStorage {
         Path path = Paths.get(filePath);
         Files.createDirectories(path.getParent());
 
-        // Atomic save
         Path tempFile = Files.createTempFile(path.getParent(), "temp-", ".csv");
         Files.write(tempFile, lines);
-        Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+
+        int retryCount = 3;
+        while (retryCount-- > 0) {
+            try {
+                Files.move(tempFile, path, StandardCopyOption.REPLACE_EXISTING);
+                return;
+            } catch (IOException e) {
+                try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+            }
+        }
+
+        throw new IOException("Failed to save file after multiple retries");
     }
 
     public static List<String> load(String filePath) throws IOException {

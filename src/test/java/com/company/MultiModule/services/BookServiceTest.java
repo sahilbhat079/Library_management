@@ -4,15 +4,13 @@ import com.company.MultiModule.exceptions.LibraryException;
 import com.company.MultiModule.models.Book;
 import org.junit.jupiter.api.*;
 
-import java.io.File;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BookServiceTest {
 
     private static final BookService bookService = BookService.getInstance();
@@ -37,7 +35,7 @@ class BookServiceTest {
         bookService.addBook(book);
 
         Book found = bookService.findById(book.getId());
-        assertNotNull(found);
+        assertNotNull(found, "Book should be found by ID.");
         assertEquals("Test Book", found.getTitle());
     }
 
@@ -52,7 +50,8 @@ class BookServiceTest {
                 .build());
 
         List<Book> results = bookService.search("Java");
-        assertFalse(results.isEmpty());
+
+        assertFalse(results.isEmpty(), "Search should return results for 'Java'.");
         assertTrue(results.stream().anyMatch(b -> b.getTitle().contains("Java")));
     }
 
@@ -87,7 +86,7 @@ class BookServiceTest {
         bookService.addBook(book);
 
         Book found = bookService.findByIsbn(isbn);
-        assertNotNull(found);
+        assertNotNull(found, "Book should be found by ISBN.");
         assertEquals("Find Me", found.getTitle());
     }
 
@@ -128,7 +127,7 @@ class BookServiceTest {
         idField.setAccessible(true);
         idField.set(book, "custom-id-123");
 
-        assertEquals("custom-id-123", book.getId());
+        assertEquals("custom-id-123", book.getId(), "Reflection should inject custom ID.");
     }
 
     @Test
@@ -142,7 +141,8 @@ class BookServiceTest {
                 .build();
 
         bookService.addBook(book);
-        assertTrue(bookService.exists(book.getId()));
-        assertTrue(bookService.existsByIsbn("TEST-EXISTS"));
+
+        assertTrue(bookService.exists(book.getId()), "Book should exist by ID.");
+        assertTrue(bookService.existsByIsbn("TEST-EXISTS"), "Book should exist by ISBN.");
     }
 }

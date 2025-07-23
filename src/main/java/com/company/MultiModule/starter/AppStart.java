@@ -7,9 +7,7 @@ import com.company.MultiModule.models.User;
 import com.company.MultiModule.models.Librarian;
 import com.company.MultiModule.services.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class AppStart {
 
@@ -34,6 +32,7 @@ public class AppStart {
         // Load persisted data
         bookService.loadFromCsv();
         userService.loadFromCsv();
+        borrowService.loadFromCsv();
 
 
 
@@ -89,6 +88,7 @@ public class AppStart {
                         System.out.println(CYAN + "\nLogging out...\n" + RESET);
                         userService.saveToCsv();
                         bookService.saveToCsv();
+                        borrowService.saveToCsv();
                         logout = true;
                     }
 
@@ -208,9 +208,6 @@ public class AppStart {
         }
         catch (BookNotFound | BorrowLimitExceed e) {
             System.out.println(RED + e.getMessage() + RESET);
-        }
-        catch (BookUnavailableException e) {
-            System.out.println(RED + " Waited 5 seconds, but book is still not available: " + e.getMessage() + RESET);
         }
         catch (LibraryException e) {
             System.out.println(RED + " Failed to borrow book: " + e.getMessage() + RESET);
@@ -406,24 +403,57 @@ public class AppStart {
         System.out.println(GREEN + " Manual backup completed." + RESET);
     }
 
+//    private void handleAdminReport() {
+//        if (!isLibrarian()) {
+//            System.out.println(RED + " Only librarians can generate reports." + RESET);
+//            return;
+//        }
+//
+//        System.out.println(CYAN + "\n1. Generate Book Report");
+//        System.out.println("2. Generate User Report");
+//        System.out.print("Select: " + RESET);
+//
+//        String option = scanner.nextLine().trim();
+//        ReportService reportService = ReportService.getInstance();
+//
+//        switch (option) {
+//            case "1" -> reportService.generateBookReport(bookService.listAllBooks());
+//            case "2" -> reportService.generateUserReport(new ArrayList<>(userService.getAllUsers().values()));
+//            default -> System.out.println(RED + "Invalid choice." + RESET);
+//        }
+//    }
+
+
+
     private void handleAdminReport() {
         if (!isLibrarian()) {
             System.out.println(RED + " Only librarians can generate reports." + RESET);
             return;
         }
 
-        System.out.println(CYAN + "\n1. Generate Book Report");
-        System.out.println("2. Generate User Report");
-        System.out.print("Select: " + RESET);
-
-        String option = scanner.nextLine().trim();
+        Map<String, Runnable> reportOptions = new LinkedHashMap<>();
         ReportService reportService = ReportService.getInstance();
 
-        switch (option) {
-            case "1" -> reportService.generateBookReport(bookService.listAllBooks());
-            case "2" -> reportService.generateUserReport(new ArrayList<>(userService.getAllUsers().values()));
-            default -> System.out.println(RED + "Invalid choice." + RESET);
+        reportOptions.put("1", () -> reportService.generateBookReport(bookService.listAllBooks()));
+        reportOptions.put("2", () -> reportService.generateUserReport(new ArrayList<>(userService.getAllUsers().values())));
+        reportOptions.put("3", reportService::generateBorrowReport);
+
+        System.out.println(CYAN + "\n===== Admin Report Options =====" + RESET);
+        System.out.println("1. Generate Book Report");
+        System.out.println("2. Generate User Report");
+        System.out.println("3. Generate Borrow Report");
+        System.out.print("Select: ");
+
+        String choice = scanner.nextLine().trim();
+
+        Runnable selected = reportOptions.get(choice);
+        if (selected != null) {
+            selected.run();
+        } else {
+            System.out.println(RED + "Invalid choice." + RESET);
         }
     }
+
+
 
 }

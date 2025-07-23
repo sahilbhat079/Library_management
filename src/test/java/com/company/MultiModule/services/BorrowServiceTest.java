@@ -144,12 +144,16 @@ class BorrowServiceTest {
                 borrowService.borrowBook(waiter, book.getId()); // should timeout
             });
 
-            assertTrue(ex.getMessage().contains("not available after waiting"));
+            // Updated to match new message
+            assertTrue(ex.getMessage().contains("Book"));
+            assertTrue(ex.getMessage().contains(book.getTitle()));
+            assertTrue(ex.getMessage().contains("not available"));
         });
 
-        future.get(10, TimeUnit.SECONDS); // wait max 10 seconds for the test to complete
+        future.get(10, TimeUnit.SECONDS); // Wait max 10 seconds for the test to complete
         executor.shutdown();
     }
+
 
 
 

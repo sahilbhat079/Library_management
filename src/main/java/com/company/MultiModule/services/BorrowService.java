@@ -5,6 +5,10 @@ import com.company.MultiModule.models.Student;
 import com.company.MultiModule.models.Book;
 import com.company.MultiModule.exceptions.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +16,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
 
 public class BorrowService {
+
+    public static final String RESET = "\u001B[0m";
+    public static final String RED   = "\u001B[91m";
+    public static final String GREEN = "\u001B[92m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String BLUE = "\u001B[34m";
 
     private static final BorrowService instance = new BorrowService();
 
@@ -44,11 +54,12 @@ public class BorrowService {
 
             long timeout = 5; // seconds
             while (!book.isAvailable()) {
-                System.out.printf("%s is waiting for \"%s\" to become available.%n", user.getName(), book.getTitle());
+                System.out.println(YELLOW + user.getName() + RESET + " is waiting for the book " +
+                        BLUE + "\"" + book.getTitle() + "\"" + RESET + " to become available...");
                 try {
                     boolean available = condition.await(timeout, TimeUnit.SECONDS);
                     if (!available) {
-                        throw new BookUnavailableException(book.getTitle(), timeout);
+                        throw new BookUnavailableException(book.getTitle());
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -103,10 +114,62 @@ public class BorrowService {
         }
     }
 
+    public Map<String, Set<String>> getBorrowMap() {
+        return borrowMap;
+    }
 
     public Set<String> getBorrowedBooks(String userId) {
         return borrowMap.getOrDefault(userId, Set.of());
     }
+
+
+
+    //load and save
+    public void saveToCsv() {
+        List<String> lines = new ArrayList<>();
+        lines.add("user_id,book_id"); // header
+
+        for (Map.Entry<String, Set<String>> entry : borrowMap.entrySet()) {
+            String userId = entry.getKey();
+            for (String bookId : entry.getValue()) {
+                lines.add(userId + "," + bookId);
+            }
+        }
+
+        try {
+            Files.write(Paths.get("data/borrow.csv"), lines);
+            System.out.println(GREEN + "Borrow records saved successfully." + RESET);
+        } catch (IOException e) {
+            System.out.println(RED + "Error saving borrow records: " + e.getMessage() + RESET);
+        }
+    }
+
+    public void loadFromCsv() {
+        Path path = Paths.get("data/borrow.csv");
+        if (!Files.exists(path)) return;
+
+        try {
+            List<String> lines = Files.readAllLines(path);
+            for (int i = 1; i < lines.size(); i++) { // Skip header
+                String[] parts = lines.get(i).split(",", 2);
+                if (parts.length < 2) continue;
+
+                String userId = parts[0];
+                String bookId = parts[1];
+
+                borrowMap.computeIfAbsent(userId, k -> new HashSet<>()).add(bookId);
+
+                // Also mark the book as unavailable
+                bookService.setAvailability(bookId, false);
+            }
+
+            System.out.println(GREEN + "Borrow records loaded from CSV." + RESET);
+        } catch (IOException e) {
+            System.out.println(RED + "Error loading borrow records: " + e.getMessage() + RESET);
+        }
+    }
+
+
 
 
 }

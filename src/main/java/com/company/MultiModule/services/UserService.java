@@ -118,14 +118,14 @@ public class UserService {
                     type = "lib";
                     extra = l.getEmployeeCode();
                 } else {
-                    continue;
+                    continue; // Unknown type
                 }
 
                 lines.add(String.join(",",
                         user.getId(),
                         escape(user.getName()),
                         escape(user.getEmail()),
-                        escape(new String(user.getPassword())),  // char[] to String
+                        escape(new String(user.getPassword())),
                         type,
                         escape(extra)
                 ));
@@ -159,21 +159,14 @@ public class UserService {
                 String extra = unescape(tokens[5]);
 
                 User user;
-
                 if ("std".equalsIgnoreCase(type)) {
                     user = new Student.StudentBuilder()
-                            .name(name)
-                            .email(email)
-                            .password(password)
-                            .borrowLimit(Integer.parseInt(extra))
-                            .build();
+                            .name(name).email(email).password(password)
+                            .borrowLimit(Integer.parseInt(extra)).build();
                 } else if ("lib".equalsIgnoreCase(type)) {
                     user = new Librarian.LibrarianBuilder()
-                            .name(name)
-                            .email(email)
-                            .password(password)
-                            .employeeCode(extra)
-                            .build();
+                            .name(name).email(email).password(password)
+                            .employeeCode(extra).build();
                 } else {
                     continue;
                 }
@@ -191,6 +184,7 @@ public class UserService {
             System.out.println(" Failed to load users from CSV: " + e.getMessage());
         }
     }
+
 
     // --- Utility methods ---
 
