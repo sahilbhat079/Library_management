@@ -16,6 +16,7 @@ public class BackupService {
 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static volatile BackupService instance;
+//    private volatile boolean started = false;
 
     private static final String CYAN = "\u001B[36m";
     private static final String GREEN = "\u001B[32m";

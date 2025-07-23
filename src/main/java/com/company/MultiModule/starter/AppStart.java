@@ -7,6 +7,7 @@ import com.company.MultiModule.models.User;
 import com.company.MultiModule.models.Librarian;
 import com.company.MultiModule.services.*;
 
+import java.io.IOException;
 import java.util.*;
 
 public class AppStart {
@@ -19,6 +20,7 @@ public class AppStart {
     private static final String BOLD = "\u001B[1m";
 
     private final Scanner scanner = new Scanner(System.in);
+    private boolean backupStarted = false;
 
     private final BookService bookService = BookService.getInstance();
     private final BorrowService borrowService = BorrowService.getInstance();
@@ -212,6 +214,7 @@ public class AppStart {
         catch (LibraryException e) {
             System.out.println(RED + " Failed to borrow book: " + e.getMessage() + RESET);
         }
+        borrowService.saveToCsv();
     }
 
 
@@ -235,6 +238,9 @@ public class AppStart {
         catch (LibraryException e) {
             System.out.println(RED + " Failed to return book: " + e.getMessage() + RESET);
         }
+        borrowService.saveToCsv();
+
+
     }
 
     private void handleSearchBook() {
@@ -392,6 +398,7 @@ public class AppStart {
         userService.addUser(newUser);
         System.out.println(GREEN + " User added successfully!" + RESET);
         System.out.println(" User ID : " + newUser.getId());
+        userService.saveToCsv();
     }
 
 
@@ -399,29 +406,16 @@ public class AppStart {
     // Backup and Report
 
     private void handleManualBackup() {
+        // Ensure the latest in-memory data is persisted
+        userService.saveToCsv();
+        bookService.saveToCsv();
+        borrowService.saveToCsv();
+
+        // Then backup
         BackupService.getInstance().backupNow();
-        System.out.println(GREEN + " Manual backup completed." + RESET);
+        System.out.println(GREEN + " Manual backup completed." + RESET);;
     }
 
-//    private void handleAdminReport() {
-//        if (!isLibrarian()) {
-//            System.out.println(RED + " Only librarians can generate reports." + RESET);
-//            return;
-//        }
-//
-//        System.out.println(CYAN + "\n1. Generate Book Report");
-//        System.out.println("2. Generate User Report");
-//        System.out.print("Select: " + RESET);
-//
-//        String option = scanner.nextLine().trim();
-//        ReportService reportService = ReportService.getInstance();
-//
-//        switch (option) {
-//            case "1" -> reportService.generateBookReport(bookService.listAllBooks());
-//            case "2" -> reportService.generateUserReport(new ArrayList<>(userService.getAllUsers().values()));
-//            default -> System.out.println(RED + "Invalid choice." + RESET);
-//        }
-//    }
 
 
 

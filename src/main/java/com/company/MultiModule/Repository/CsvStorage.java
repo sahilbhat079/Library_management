@@ -21,7 +21,11 @@ public class CsvStorage {
             } catch (IOException e) {
                 try { Thread.sleep(100); } catch (InterruptedException ignored) {}
             }
+            finally {
+                Files.deleteIfExists(tempFile);
+            }
         }
+
 
         throw new IOException("Failed to save file after multiple retries");
     }
