@@ -74,8 +74,9 @@ public class BorrowService {
             if (book == null) throw new BookNotFound(bookId);
 
             Set<String> borrowed = borrowMap.getOrDefault(user.getId(), Set.of());
+
             if (!borrowed.contains(bookId)) {
-                throw new BookNotBorrowedByUser(user.getId(), bookId);
+                throw new BookNotBorrowedByUser(user.getName(), book.getIsbn());
             }
 
             borrowed.remove(bookId);

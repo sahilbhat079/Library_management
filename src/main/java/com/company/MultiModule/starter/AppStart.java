@@ -36,38 +36,74 @@ public class AppStart {
         bookService.loadFromCsv();
         userService.loadFromCsv();
 
-        login();
-        BackupService.getInstance().startPeriodicBackup();
 
-        boolean exit = false;
 
-        while (!exit) {
-            printMenu();
-            String choice = scanner.nextLine().trim();
+        boolean quitApp = false;
 
-            switch (choice) {
-                case "1" -> handleListBooks();
-                case "2" -> handleBorrowBook();
-                case "3" -> handleReturnBook();
-                case "4" -> handleSearchBook();
-                case "5" -> {
-                    if (isLibrarian()) handleAddBook();
-                    else System.out.println(RED + " Only librarians can add books." + RESET);
+        while (!quitApp) {
+            login();
+
+            // Start backup once the login in the system.
+            BackupService.getInstance().startPeriodicBackup();
+            boolean logout = false;
+
+            while (!logout) {
+                printMenu();
+                String choice = scanner.nextLine().trim();
+
+                switch (choice) {
+                    case "1" -> handleListBooks();
+
+                    case "2" -> {
+                        if (!isLibrarian()) handleBorrowBook();
+                        else System.out.println(RED + " This option is not available for librarians." + RESET);
+                    }
+
+                    case "3" -> {
+                        if (!isLibrarian()) handleReturnBook();
+                        else System.out.println(RED + " This option is not available for librarians." + RESET);
+                    }
+
+                    case "4" -> handleSearchBook();
+
+                    case "5" -> {
+                        if (isLibrarian()) handleAddBook();
+                        else System.out.println(RED + " Only librarians can add books." + RESET);
+                    }
+
+                    case "6" -> {
+                        if (isLibrarian()) handleAddUser();
+                        else System.out.println(RED + " Only librarians can add users." + RESET);
+                    }
+
+                    case "7" -> {
+                        if (isLibrarian()) handleManualBackup();
+                        else System.out.println(RED + " Only librarians can perform manual backup." + RESET);
+                    }
+
+                    case "8" -> {
+                        if (isLibrarian()) handleAdminReport();
+                        else System.out.println(RED + " Only librarians can generate reports." + RESET);
+                    }
+
+                    case "9" -> {
+                        System.out.println(CYAN + "\nLogging out...\n" + RESET);
+                        userService.saveToCsv();
+                        bookService.saveToCsv();
+                        logout = true;
+                    }
+
+                    default -> System.out.println(RED + " Invalid option. Try again." + RESET);
                 }
-                case "6" -> {
-                    if (isLibrarian()) handleAddUser();
-                    else System.out.println(RED + " Only librarians can add users." + RESET);
-                }
-                case "7" -> handleManualBackup();
-                case "8" -> handleAdminReport();
-                case "9" -> {
-                    System.out.println(CYAN + "\n Exiting system. Goodbye!\n" + RESET);
-                    BackupService.getInstance().shutdown();
-                    userService.saveToCsv();
-                    bookService.saveToCsv();
-                    exit = true;
-                }
-                default -> System.out.println(RED + " Invalid option. Try again." + RESET);
+            }
+
+            System.out.print(CYAN + "Do you want to login again? (yes/no): " + RESET);
+            String again = scanner.nextLine().trim().toLowerCase();
+
+            if (!again.equals("yes")) {
+                quitApp = true;
+                BackupService.getInstance().shutdown();
+                System.out.println(GREEN + "\nSystem shutdown. Goodbye!" + RESET);
             }
         }
     }
@@ -105,21 +141,33 @@ public class AppStart {
     }
 
     private void printMenu() {
+        String role = isLibrarian() ? "Librarian" : "Student";
+
         System.out.println(CYAN + "\n------------------ MENU ------------------" + RESET);
+        System.out.println("Logged in as: " + BOLD + loggedInUser.getName() + " (" + role + ")" + RESET);
+
         System.out.println("1. List all books");
-        System.out.println("2. Borrow book");
-        System.out.println("3. Return book");
+
+        if (!isLibrarian()) {
+            System.out.println("2. Borrow book");
+            System.out.println("3. Return book");
+        }
+
         System.out.println("4. Search books");
+
         if (isLibrarian()) {
             System.out.println("5. Add book");
             System.out.println("6. Add user");
+            System.out.println("7. Manual backup");
+            System.out.println("8. Generate admin report");
         }
-        System.out.println("7. Manual backup");
-        System.out.println("8. Generate admin report");
+
         System.out.println("9. Exit");
         System.out.print(CYAN + "Select an option: " + RESET);
     }
 
+
+    //book service
     private void handleListBooks() {
         List<Book> books = bookService.listAllBooks();
 
@@ -143,6 +191,11 @@ public class AppStart {
         System.out.print("Enter ISBN to borrow: ");
         String isbn = scanner.nextLine().trim();
 
+        if (isbn.isBlank()) {
+            System.out.println(RED + " ISBN cannot be empty!" + RESET);
+            return;
+        }
+
         try {
             Book book = bookService.findByIsbn(isbn);
             borrowService.borrowBook(loggedInUser, book.getId());
@@ -156,6 +209,11 @@ public class AppStart {
         System.out.print("Enter ISBN to return: ");
         String isbn = scanner.nextLine().trim();
 
+        if (isbn.isBlank()) {
+            System.out.println(RED + " ISBN cannot be empty!" + RESET);
+            return;
+        }
+
         try {
             Book book = bookService.findByIsbn(isbn);
             borrowService.returnBook(loggedInUser, book.getId());
@@ -167,7 +225,12 @@ public class AppStart {
 
     private void handleSearchBook() {
         System.out.print("Search by title or author: ");
-        String keyword = scanner.nextLine();
+        String keyword = scanner.nextLine().trim();
+
+        if (keyword.isBlank()) {
+            System.out.println(RED + " Search keyword cannot be empty!" + RESET);
+            return;
+        }
 
         List<Book> results = bookService.search(keyword);
         if (results.isEmpty()) {
@@ -189,16 +252,32 @@ public class AppStart {
         System.out.println(CYAN + "\n========= Add a New Book =========" + RESET);
 
         System.out.print("Title     : ");
-        String title = scanner.nextLine();
+        String title = scanner.nextLine().trim();
+        if (title.isBlank()) {
+            System.out.println(RED + " Title cannot be empty!" + RESET);
+            return;
+        }
 
         System.out.print("Author    : ");
-        String author = scanner.nextLine();
+        String author = scanner.nextLine().trim();
+        if (author.isBlank()) {
+            System.out.println(RED + " Author cannot be empty!" + RESET);
+            return;
+        }
 
         System.out.print("Category  : ");
-        String category = scanner.nextLine();
+        String category = scanner.nextLine().trim();
+        if (category.isBlank()) {
+            System.out.println(RED + " Category cannot be empty!" + RESET);
+            return;
+        }
 
         System.out.print("ISBN      : ");
-        String isbn = scanner.nextLine();
+        String isbn = scanner.nextLine().trim();
+        if (isbn.isBlank()) {
+            System.out.println(RED + " ISBN cannot be empty!" + RESET);
+            return;
+        }
 
         Book book = new Book.Builder<>()
                 .title(title)
@@ -215,27 +294,59 @@ public class AppStart {
         System.out.println(" ISBN    : " + book.getIsbn());
     }
 
+
+    //user service
     private void handleAddUser() {
         System.out.println(CYAN + "\n========= Add New User =========" + RESET);
 
         System.out.print("Role [std/lib]     : ");
         String role = scanner.nextLine().trim().toLowerCase();
+        if (!(role.equals("std") || role.equals("lib"))) {
+            System.out.println(RED + " Invalid role. Use 'std' or 'lib' only." + RESET);
+            return;
+        }
 
         System.out.print("Name               : ");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine().trim();
+        if (name.isBlank()) {
+            System.out.println(RED + " Name cannot be empty!" + RESET);
+            return;
+        }
 
         System.out.print("Email              : ");
-        String email = scanner.nextLine();
+        String email = scanner.nextLine().trim();
+        if (email.isBlank()) {
+            System.out.println(RED + " Email cannot be empty!" + RESET);
+            return;
+        }
 
         System.out.print("Password           : ");
-        char[] password = scanner.nextLine().toCharArray();
+        String passwordInput = scanner.nextLine();
+        if (passwordInput.isBlank()) {
+            System.out.println(RED + " Password cannot be empty!" + RESET);
+            return;
+        }
+        char[] password = passwordInput.toCharArray();
 
         User newUser;
 
         switch (role) {
             case "std" -> {
                 System.out.print("Borrow Limit       : ");
-                int limit = Integer.parseInt(scanner.nextLine());
+                String limitStr = scanner.nextLine().trim();
+                if (limitStr.isBlank()) {
+                    System.out.println(RED + " Borrow limit cannot be empty!" + RESET);
+                    return;
+                }
+
+                int limit;
+                try {
+                    limit = Integer.parseInt(limitStr);
+                } catch (NumberFormatException e) {
+                    System.out.println(RED + " Invalid number for borrow limit." + RESET);
+                    return;
+                }
+
                 newUser = new Student.StudentBuilder()
                         .name(name)
                         .email(email)
@@ -245,7 +356,12 @@ public class AppStart {
             }
             case "lib" -> {
                 System.out.print("Employee Code      : ");
-                String code = scanner.nextLine();
+                String code = scanner.nextLine().trim();
+                if (code.isBlank()) {
+                    System.out.println(RED + " Employee code cannot be empty!" + RESET);
+                    return;
+                }
+
                 newUser = new Librarian.LibrarianBuilder()
                         .name(name)
                         .email(email)
@@ -263,6 +379,10 @@ public class AppStart {
         System.out.println(GREEN + " User added successfully!" + RESET);
         System.out.println(" User ID : " + newUser.getId());
     }
+
+
+
+    // Backup and Report
 
     private void handleManualBackup() {
         BackupService.getInstance().backupNow();

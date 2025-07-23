@@ -44,7 +44,7 @@ public class UserService {
         printHeader(title);
         users.values().forEach(u -> {
             String info = String.format("Username: %s, Password: %s, Role: %s",
-                    u.getName(), "********", u.getClass().getSimpleName()); // avoid real password
+                    u.getName(), new String(u.getPassword()), u.getClass().getSimpleName());
             System.out.println(CYAN + "|" + padRight(info, BOX_WIDTH - 2) + "|" + RESET);
         });
         printFooter();
